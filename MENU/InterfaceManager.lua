@@ -6,7 +6,7 @@ local InterfaceManager = {} do
         Theme = "Dark",
         Acrylic = true,
         Transparency = true,
-        MenuKeybind = "LeftControl"
+        MenuKeybind = ToggleButton.MouseButton1Click:Connect(toggleMenu)
     }
 
     function InterfaceManager:SetFolder(folder)
