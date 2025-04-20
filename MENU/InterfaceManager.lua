@@ -1,3 +1,4 @@
+-- InterfaceManager.lua
 local httpService = game:GetService("HttpService")
 
 local InterfaceManager = {} do
@@ -19,22 +20,12 @@ local InterfaceManager = {} do
 	end
 
     function InterfaceManager:BuildFolderTree()
-		local paths = {}
-
 		local parts = self.Folder:split("/")
-		for idx = 1, #parts do
-			paths[#paths + 1] = table.concat(parts, "/", 1, idx)
+		for i = 1, #parts do
+			local path = table.concat(parts, "/", 1, i)
+			if not isfolder(path) then makefolder(path) end
 		end
-
-		table.insert(paths, self.Folder)
-		table.insert(paths, self.Folder .. "/settings")
-
-		for i = 1, #paths do
-			local str = paths[i]
-			if not isfolder(str) then
-				makefolder(str)
-			end
-		end
+		if not isfolder(self.Folder .. "/settings") then makefolder(self.Folder .. "/settings") end
 	end
 
     function InterfaceManager:SaveSettings()
@@ -44,9 +35,7 @@ local InterfaceManager = {} do
     function InterfaceManager:LoadSettings()
         local path = self.Folder .. "/options.json"
         if isfile(path) then
-            local data = readfile(path)
-            local success, decoded = pcall(httpService.JSONDecode, httpService, data)
-
+            local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(path))
             if success then
                 for i, v in next, decoded do
                     InterfaceManager.Settings[i] = v
