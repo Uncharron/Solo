@@ -6,7 +6,7 @@ local InterfaceManager = {} do
         Theme = "Dark",
         Acrylic = true,
         Transparency = true,
-        MenuKeybind = ToggleButton.MouseButton1Click:Connect(toggleMenu)
+        MenuKeybind = "LeftControl"
     }
 
     function InterfaceManager:SetFolder(folder)
@@ -108,6 +108,27 @@ local InterfaceManager = {} do
             InterfaceManager:SaveSettings()
 		end)
 		Library.MinimizeKeybind = MenuKeybind
+
+        -- 🔽 เพิ่มปุ่ม Toggle UI ที่มุมจอ
+        InterfaceManager:CreateToggleIcon()
+    end
+
+    function InterfaceManager:CreateToggleIcon()
+        local icon = Instance.new("ImageButton")
+        icon.Name = "ToggleMenuIcon"
+        icon.Image = "rbxassetid://7733960981" -- Hamburger menu icon
+        icon.Size = UDim2.new(0, 32, 0, 32)
+        icon.Position = UDim2.new(0, 10, 0, 10) -- เปลี่ยนตำแหน่งตามต้องการ
+        icon.BackgroundTransparency = 1
+        icon.ZIndex = 999
+        icon.Parent = game:GetService("CoreGui")
+
+        local isOpen = true
+
+        icon.MouseButton1Click:Connect(function()
+            isOpen = not isOpen
+            InterfaceManager.Library:SetMinimized(not isOpen)
+        end)
     end
 end
 
