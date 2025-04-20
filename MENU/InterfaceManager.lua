@@ -1,7 +1,8 @@
 local httpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
 
 local InterfaceManager = {} do
-	InterfaceManager.Folder = "FluentSettings"
+    InterfaceManager.Folder = "FluentSettings"
     InterfaceManager.Settings = {
         Theme = "Dark",
         Acrylic = true,
@@ -10,32 +11,32 @@ local InterfaceManager = {} do
     }
 
     function InterfaceManager:SetFolder(folder)
-		self.Folder = folder;
-		self:BuildFolderTree()
-	end
+        self.Folder = folder
+        self:BuildFolderTree()
+    end
 
     function InterfaceManager:SetLibrary(library)
-		self.Library = library
-	end
+        self.Library = library
+    end
 
     function InterfaceManager:BuildFolderTree()
-		local paths = {}
+        local paths = {}
 
-		local parts = self.Folder:split("/")
-		for idx = 1, #parts do
-			paths[#paths + 1] = table.concat(parts, "/", 1, idx)
-		end
+        local parts = self.Folder:split("/")
+        for idx = 1, #parts do
+            paths[#paths + 1] = table.concat(parts, "/", 1, idx)
+        end
 
-		table.insert(paths, self.Folder)
-		table.insert(paths, self.Folder .. "/settings")
+        table.insert(paths, self.Folder)
+        table.insert(paths, self.Folder .. "/settings")
 
-		for i = 1, #paths do
-			local str = paths[i]
-			if not isfolder(str) then
-				makefolder(str)
-			end
-		end
-	end
+        for i = 1, #paths do
+            local str = paths[i]
+            if not isfolder(str) then
+                makefolder(str)
+            end
+        end
+    end
 
     function InterfaceManager:SaveSettings()
         writefile(self.Folder .. "/options.json", httpService:JSONEncode(InterfaceManager.Settings))
@@ -57,57 +58,95 @@ local InterfaceManager = {} do
 
     function InterfaceManager:BuildInterfaceSection(tab)
         assert(self.Library, "Must set InterfaceManager.Library")
-		local Library = self.Library
+        local Library = self.Library
         local Settings = InterfaceManager.Settings
 
         InterfaceManager:LoadSettings()
 
-		local section = tab:AddSection("Interface")
+        local section = tab:AddSection("Interface")
 
-		local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-			Title = "Theme",
-			Description = "Changes the interface theme.",
-			Values = Library.Themes,
-			Default = Settings.Theme,
-			Callback = function(Value)
-				Library:SetTheme(Value)
+        local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
+            Title = "Theme",
+            Description = "Changes the interface theme.",
+            Values = Library.Themes,
+            Default = Settings.Theme,
+            Callback = function(Value)
+                Library:SetTheme(Value)
                 Settings.Theme = Value
                 InterfaceManager:SaveSettings()
-			end
-		})
+            end
+        })
 
         InterfaceTheme:SetValue(Settings.Theme)
-	
-		if Library.UseAcrylic then
-			section:AddToggle("AcrylicToggle", {
-				Title = "Acrylic",
-				Description = "The blurred background requires graphic quality 8+",
-				Default = Settings.Acrylic,
-				Callback = function(Value)
-					Library:ToggleAcrylic(Value)
+
+        if Library.UseAcrylic then
+            section:AddToggle("AcrylicToggle", {
+                Title = "Acrylic",
+                Description = "The blurred background requires graphic quality 8+",
+                Default = Settings.Acrylic,
+                Callback = function(Value)
+                    Library:ToggleAcrylic(Value)
                     Settings.Acrylic = Value
                     InterfaceManager:SaveSettings()
-				end
-			})
-		end
-	
-		section:AddToggle("TransparentToggle", {
-			Title = "Transparency",
-			Description = "Makes the interface transparent.",
-			Default = Settings.Transparency,
-			Callback = function(Value)
-				Library:ToggleTransparency(Value)
-				Settings.Transparency = Value
+                end
+            })
+        end
+
+        section:AddToggle("TransparentToggle", {
+            Title = "Transparency",
+            Description = "Makes the interface transparent.",
+            Default = Settings.Transparency,
+            Callback = function(Value)
+                Library:ToggleTransparency(Value)
+                Settings.Transparency = Value
                 InterfaceManager:SaveSettings()
-			end
-		})
-	
-		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Settings.MenuKeybind })
-		MenuKeybind:OnChanged(function()
-			Settings.MenuKeybind = MenuKeybind.Value
+            end
+        })
+
+        local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Settings.MenuKeybind })
+        MenuKeybind:OnChanged(function()
+            Settings.MenuKeybind = MenuKeybind.Value
             InterfaceManager:SaveSettings()
-		end)
-		Library.MinimizeKeybind = MenuKeybind
+        end)
+        Library.MinimizeKeybind = MenuKeybind
+    end
+
+    -- สร้างปุ่ม UI สำหรับเปิด/ปิดเมนู
+    function InterfaceManager:CreateMenuButton()
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0, 50, 0, 50)
+        button.Position = UDim2.new(0, 10, 0, 10)
+        button.Text = "☰"  -- ใช้สัญลักษณ์ฮัมเบอร์เกอร์
+        button.TextSize = 30
+        button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        button.BackgroundTransparency = 0.5
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        button.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+
+        -- ฟังก์ชันที่ใช้เปิด/ปิดเมนูเมื่อกดปุ่ม
+        local menuOpen = false
+        button.MouseButton1Click:Connect(function()
+            menuOpen = not menuOpen
+            if menuOpen then
+                -- ฟังก์ชันเปิดเมนู (แสดงหรือทำงานตามที่ต้องการ)
+                print("Menu Opened")
+            else
+                -- ฟังก์ชันปิดเมนู
+                print("Menu Closed")
+            end
+        end)
+
+        -- ตรวจจับคีย์บอร์ดที่ใช้สำหรับเปิด/ปิดเมนู
+        UserInputService.InputBegan:Connect(function(input)
+            if input.KeyCode == Enum.KeyCode[Settings.MenuKeybind] then
+                menuOpen = not menuOpen
+                if menuOpen then
+                    print("Menu Opened via Keybind")
+                else
+                    print("Menu Closed via Keybind")
+                end
+            end
+        end)
     end
 end
 
