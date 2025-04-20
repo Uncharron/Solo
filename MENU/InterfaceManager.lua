@@ -1,4 +1,3 @@
--- InterfaceManager.lua
 local httpService = game:GetService("HttpService")
 
 local InterfaceManager = {} do
@@ -20,12 +19,22 @@ local InterfaceManager = {} do
 	end
 
     function InterfaceManager:BuildFolderTree()
+		local paths = {}
+
 		local parts = self.Folder:split("/")
-		for i = 1, #parts do
-			local path = table.concat(parts, "/", 1, i)
-			if not isfolder(path) then makefolder(path) end
+		for idx = 1, #parts do
+			paths[#paths + 1] = table.concat(parts, "/", 1, idx)
 		end
-		if not isfolder(self.Folder .. "/settings") then makefolder(self.Folder .. "/settings") end
+
+		table.insert(paths, self.Folder)
+		table.insert(paths, self.Folder .. "/settings")
+
+		for i = 1, #paths do
+			local str = paths[i]
+			if not isfolder(str) then
+				makefolder(str)
+			end
+		end
 	end
 
     function InterfaceManager:SaveSettings()
@@ -35,13 +44,39 @@ local InterfaceManager = {} do
     function InterfaceManager:LoadSettings()
         local path = self.Folder .. "/options.json"
         if isfile(path) then
-            local success, decoded = pcall(httpService.JSONDecode, httpService, readfile(path))
+            local data = readfile(path)
+            local success, decoded = pcall(httpService.JSONDecode, httpService, data)
+
             if success then
                 for i, v in next, decoded do
                     InterfaceManager.Settings[i] = v
                 end
             end
         end
+    end
+    function InterfaceManager:CreateMenuToggleIcon()
+	assert(self.Library, "Must set InterfaceManager.Library")
+	local Library = self.Library
+
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "MenuToggleUI"
+	ScreenGui.ResetOnSpawn = false
+	ScreenGui.IgnoreGuiInset = true
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ScreenGui.Parent = game:GetService("CoreGui")
+
+	local ToggleButton = Instance.new("ImageButton")
+	ToggleButton.Name = "MenuToggleButton"
+	ToggleButton.Size = UDim2.new(0, 32, 0, 32)
+	ToggleButton.Position = UDim2.new(0, 10, 0, 10)
+	ToggleButton.BackgroundTransparency = 1
+	ToggleButton.Image = "rbxassetid://6035047409" -- icon รูปเมนู (hamburger icon)
+	ToggleButton.Parent = ScreenGui
+
+	-- Event: Toggle visibility
+	ToggleButton.MouseButton1Click:Connect(function()
+		Library:Toggle() -- ใช้เมธอดของ Fluent UI
+	end)
     end
 
     function InterfaceManager:BuildInterfaceSection(tab)
